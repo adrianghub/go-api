@@ -5,14 +5,17 @@ import (
 	"log"
 	"net/http"
 
+	"educational_api/db"
+	"educational_api/handlers"
+
 	"github.com/gorilla/mux"
 )
 
 func main() {
-	initDB()
+	db.InitDB()
 	router := mux.NewRouter()
 
-	registerHandlers(router)
+	handlers.RegisterHandlers(router)
 
 	fmt.Println("Server started on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
