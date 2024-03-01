@@ -1,4 +1,4 @@
-package models
+package resources
 
 type Resource struct {
 	ID             int    `json:"id"`

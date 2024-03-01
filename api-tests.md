@@ -1,3 +1,8 @@
+<!-- Auth Signup -->
+curl -X POST http://localhost:8080/signup -H "Content-Type: application/json" -d '{"username": "testuser", "email": "your-email.com", "password": "admin1"}'
+
+
+<!-- Resources -->
 curl -X GET http://localhost:8080/resources
 
 curl -X GET http://localhost:8080/resources/1

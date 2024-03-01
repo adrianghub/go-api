@@ -1,4 +1,4 @@
-package handlers
+package resources
 
 import (
 	"database/sql"
@@ -7,14 +7,13 @@ import (
 	"strconv"
 
 	"educational_api/db"
-	"educational_api/models"
 
 	"github.com/gorilla/mux"
 )
 
 func getResources(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var resources []models.Resource
+	var resources []Resource
 
 	rows, err := db.DB.Query("SELECT * FROM resources")
 	if err != nil {
@@ -24,7 +23,7 @@ func getResources(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	for rows.Next() {
-			var res models.Resource
+			var res Resource
 			if err := rows.Scan(&res.ID, &res.Title, &res.Category, &res.Description, &res.URL, &res.DateAdded, &res.ResourceType, &res.CompletionTime); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -44,7 +43,7 @@ func getResource(w http.ResponseWriter, r *http.Request) {
 			return
 	}
 
-	var res models.Resource
+	var res Resource
 	row := db.DB.QueryRow("SELECT * FROM resources WHERE id = ?", id)
 	err = row.Scan(&res.ID, &res.Title, &res.Category, &res.Description, &res.URL, &res.DateAdded, &res.ResourceType, &res.CompletionTime)
 	if err == sql.ErrNoRows {
@@ -59,7 +58,7 @@ func getResource(w http.ResponseWriter, r *http.Request) {
 }
 
 func createResource(w http.ResponseWriter, r *http.Request) {
-	var res models.Resource
+	var res Resource
 	err := json.NewDecoder(r.Body).Decode(&res)
 	if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -87,7 +86,7 @@ func updateResource(w http.ResponseWriter, r *http.Request) {
 			return
 	}
 
-	var res models.Resource
+	var res Resource
 	err = json.NewDecoder(r.Body).Decode(&res)
 	if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)

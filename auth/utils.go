@@ -2,20 +2,17 @@ package auth
 
 import (
 	"educational_api/db"
-	"educational_api/models"
 	"fmt"
 	"log"
 	"net/smtp"
 	"os"
 )
 
-var smtpHost = os.Getenv("SMTP_HOST")
-var smtpPort = os.Getenv("SMTP_PORT")
-var smtpUser = os.Getenv("SMTP_USER")
-var smtpPass = os.Getenv("SMTP_PASS")
-
-
 func sendVerificationEmail(to, token string) error {
+	smtpHost := os.Getenv("SMTP_HOST")
+	smtpPort := os.Getenv("SMTP_PORT")
+	smtpUser := os.Getenv("SMTP_USER")
+	smtpPass := os.Getenv("SMTP_PASS")
 
 	if smtpHost == "" || smtpPort == "" || smtpUser == "" || smtpPass == "" {
 		return fmt.Errorf("SMTP configuration not set")
@@ -23,7 +20,8 @@ func sendVerificationEmail(to, token string) error {
 
 	from := smtpUser
 	subject := "Email Verification"
-	body := fmt.Sprintf("Here is your verification token: %s", token)
+	body := fmt.Sprintf("Click <a href='http://localhost:8080/verify-email?token=%s'>here</a> to verify your email", token)
+
 	msg := createMessage(from, to, subject, body)
 
 	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
@@ -50,8 +48,12 @@ func createMessage(from, to, subject, body string) []byte {
 
 	return []byte(message)
 }
-func saveUser(user models.User) error {
-	fmt.Println("Saving user")
+
+func saveUser(user User) error {
+	_, err := db.DB.Exec("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, email TEXT, totpSecret TEXT, isEmailVerified BOOLEAN, mfaEnabled BOOLEAN)")
+	if err != nil {
+		return fmt.Errorf("error creating users table: %w", err)
+	}
 
 	stmt, err := db.DB.Prepare("INSERT INTO users(username, password, email, totpSecret, isEmailVerified, mfaEnabled) VALUES (?, ?, ?, ?, ?, ?)")
 	if err != nil {

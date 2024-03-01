@@ -1,15 +1,16 @@
 package auth
 
 import (
-	"educational_api/models"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func SignUpHandler(w http.ResponseWriter, r *http.Request) {
-	var user models.User
+	var user User
 
 	fmt.Println("Signup handler called")
 
@@ -61,7 +62,7 @@ func VerifyEmailHandler(w http.ResponseWriter, r *http.Request) {
 			return
 	}
 
-	if err := VerifyUserToken(token); err != nil {
+	if err := VerifyEmailVerificationToken(token); err != nil {
 			http.Error(w, "Invalid or expired token", http.StatusBadRequest)
 			return
 	}
@@ -69,4 +70,10 @@ func VerifyEmailHandler(w http.ResponseWriter, r *http.Request) {
 	// Redirect or respond with success
 	// http.Redirect(w, r, "/verification-success", http.StatusSeeOther)
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Email verified successfully"))
+}
+
+func RegisterHandlers(router *mux.Router) {
+	router.HandleFunc("/signup", SignUpHandler).Methods("POST")
+	router.HandleFunc("/verify-email", VerifyEmailHandler).Methods("GET")
 }

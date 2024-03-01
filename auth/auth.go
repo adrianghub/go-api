@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -13,24 +14,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-var jwtKey = []byte("your_secret_key") // Consider retrieving this from an environment variable
-
-func GenerateToken(userID int) (string, error) {
-	expirationTime := time.Now().Add(5 * time.Minute)
-
-	claims := &Claims{
-		UserID: userID,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	
-	tokenString, err := token.SignedString(jwtKey)
-
-	return tokenString, err
-}
+var jwtKey = []byte(os.Getenv("JWT_SECRET")) 
 
 func GenerateEmailVerificationToken(email string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
@@ -52,8 +36,7 @@ func HashPassword(password string) (string, error) {
 	return string(bytes), err
 }
 
-
-func VerifyUserToken(tokenString string) error {
+func VerifyEmailVerificationToken(tokenString string) error {
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
@@ -63,12 +46,12 @@ func VerifyUserToken(tokenString string) error {
 
 	if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && token.Valid {
 		if claims.ExpiresAt.Time.Before(time.Now()) {
-			return fmt.Errorf("token is expired")
+			return fmt.Errorf("expired - email verification token")
 		}
 
 		return updateUserEmailVerificationStatus(claims.Subject, true)
 	} else {
-		return fmt.Errorf("invalid token")
+		return fmt.Errorf("invalid - email verification token")
 	}
 }
 
