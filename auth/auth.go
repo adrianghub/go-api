@@ -16,7 +16,7 @@ type Claims struct {
 
 var jwtKey = []byte(os.Getenv("JWT_SECRET")) 
 
-func GenerateEmailVerificationToken(email string) (string, error) {
+func generateEmailVerificationToken(email string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 
 	claims := &jwt.RegisteredClaims{
@@ -31,12 +31,18 @@ func GenerateEmailVerificationToken(email string) (string, error) {
 	return tokenString, err
 }
 
-func HashPassword(password string) (string, error) {
+func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
 }
 
-func VerifyEmailVerificationToken(tokenString string) error {
+func checkPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+
+	return err == nil
+}
+
+func verifyEmailVerificationToken(tokenString string) error {
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})

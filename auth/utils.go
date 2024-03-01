@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"database/sql"
 	"educational_api/db"
+	"errors"
 	"fmt"
 	"log"
 	"net/smtp"
@@ -91,4 +93,23 @@ func updateUserEmailVerificationStatus(email string, isVerified bool) error {
 	}
 
 	return nil
+}
+
+func getUserByEmail(userEmail string) (*User, error) {
+	var user User
+	query := `SELECT id, username, password, email, totpSecret, isEmailVerified, mfaEnabled FROM users WHERE email = $1`
+	
+	err := db.DB.QueryRow(query, userEmail).Scan(&user.ID, &user.Username, &user.Password, &user.Email, &user.TOTPSecret, &user.IsEmailVerified, &user.MFAEnabled)
+	if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, errors.New("user not found or email not verified") 
+			}
+			return nil, err
+	}
+
+	if !user.IsEmailVerified {
+		return nil, errors.New("user not found or email not verified")
+	}
+
+	return &user, nil
 }
