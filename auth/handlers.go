@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/xlzd/gotp"
 )
 
 func signUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -93,6 +94,18 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 	tokenString, err := GenerateToken(user.ID)
 	if err != nil {
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
+	randomSecret := gotp.RandomSecret(16)
+
+	fmt.Println("Random secret:", randomSecret)
+
+	
+	// Attempt to handle 2FA
+	generateTOTPWithSecret(randomSecret, credentials.Email)
+	if verifyOTP(randomSecret) == "" {
+		http.Error(w, "Failed to verify OTP", http.StatusInternalServerError)
 		return
 	}
 

@@ -1,6 +1,8 @@
 <!-- Auth Signup -->
 curl -X POST http://localhost:8080/signup -H "Content-Type: application/json" -d '{"username": "testuser", "email": "your-email.com", "password": "admin1"}'
 
+<!-- Auth Signin -->
+curl -X POST http://localhost:8080/signin      -H "Content-Type: application/json"      -d '{"email":"zinko.adrian00@gmail.com", "password":"admintest"}'
 
 <!-- Resources -->
 curl -X GET http://localhost:8080/resources

@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"bufio"
 	"database/sql"
 	"educational_api/db"
 	"errors"
@@ -8,6 +9,11 @@ import (
 	"log"
 	"net/smtp"
 	"os"
+	"time"
+
+	"github.com/mdp/qrterminal"
+	"github.com/skip2/go-qrcode"
+	"github.com/xlzd/gotp"
 )
 
 func sendVerificationEmail(to, token string) error {
@@ -112,4 +118,41 @@ func getUserByEmail(userEmail string) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+func generateTOTPWithSecret(randomSecret, userEmail string) {
+	uri := gotp.NewDefaultTOTP(randomSecret).ProvisioningUri(userEmail, "myApp")
+	fmt.Println("Secret Key URI:", uri)
+ 
+	qrcode.WriteFile(uri, qrcode.Medium, 256, "qr.png")
+ 
+	qrterminal.GenerateWithConfig(uri, qrterminal.Config{
+	 Level:     qrterminal.L,
+	 Writer:    os.Stdout,
+	 BlackChar: qrterminal.BLACK,
+	 WhiteChar: qrterminal.WHITE,
+	})
+ 
+	fmt.Println("\nScan the QR code with your authenticator app")
+ }
+
+ func verifyOTP(randomSecret string) string {
+	totp := gotp.NewDefaultTOTP(randomSecret)
+
+ fmt.Print("Enter the OTP from your authenticator app: ")
+ 
+ scanner := bufio.NewScanner(os.Stdin)
+ 
+ scanner.Scan()
+ 
+ userInput := scanner.Text()
+
+	if totp.Verify(userInput, time.Now().Unix()) {
+		fmt.Println("Authentication successful! Access granted.")
+	} else {
+		fmt.Println("Authentication failed! Invalid OTP.")
+		return ""
+	}
+
+	return userInput
 }
